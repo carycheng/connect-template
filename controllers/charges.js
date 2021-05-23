@@ -1,24 +1,23 @@
 const keys = require('../config/keys');
 const stripe = require('stripe')(keys.STRIPE_SK);
+const User = require('../models/User');
 
 const createCharge = async (req, res, next) => {
 
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount: 2000,
-        currency: 'usd',
-        payment_method_data: {
-            type: "card",
-            card: {
-                token: req.body.token.id
-            }
-        },
-        confirm: true,
-        return_url: "http://localhost:3000/"
-    });
+    console.log('In backend');
+    console.log(req.body);
 
-    console.log(paymentIntent)
+    const User = new User();
+    console.log(User);
 
-    res.send(paymentIntent);
+    // console.log('after new user call');
+    // User.save()
+    // .then(data=>{
+    //     response.json(data)
+    // })
+    // .catch(error=>{
+    //     response.json(error)
+    // })
 };
 
 module.exports.createCharge = createCharge;

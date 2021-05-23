@@ -3,9 +3,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Create a new express application named 'app'
 const app = express();
+
+mongoose.connect('mongodb+srv://caryadmin:caryadmin@stripereact.mxae3.mongodb.net/users?retryWrites=true&w=majority', () => console.log('Database Connected'));
 
 // Set our backend port to be either an environment variable or port 5000
 const port = process.env.PORT || 5000;
@@ -26,10 +29,12 @@ app.use(bodyParser.urlencoded({
 app.use(cors());
 
 // Require Route
-const api = require('./routes/routes');
+const registrationAPI = require('./routes/registration');
+const productsAPI = require('./routes/products');
 
 // Configure app to use route
-app.use('/api/v1/', api);
+app.use('/api/v1/', registrationAPI);
+app.use('/api/v1/', productsAPI);
 
 // This middleware informs the express application to serve our compiled React files
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {

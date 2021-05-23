@@ -1,26 +1,28 @@
 import React from "react";
-import './public/styles/Landing.css';
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import CheckoutForm from "./components/CheckoutForm";
-import Header from './components/Header';
+import {BrowserRouter as Router, Route, Switch, Link, Redirect} from 'react-router-dom';
+
+import Landing from './pages/Landing';
+import SelectPlan from './pages/SelectPlan';
+import Dashboard from './pages/Dashboard';
+import NotFoundPage from "./pages/404";
 
 const keys = require('./config/keys');
-
-const stripePromise = loadStripe(keys.STRIPE_PK);
 
 class App extends React.Component {
 
   render() {
     return (
-      <div className="app background-landing">
-        <Header />
-        <div id="outer-box" className="product">
-          <Elements stripe={stripePromise}>
-            <CheckoutForm/>
-          </Elements>
-        </div>
-      </div>
+      <React.Fragment>
+        <Router>
+          <Switch>
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/select-plan" component={SelectPlan} />
+            <Route exact path="/dashboard" component={Dashboard} />
+            <Route component={NotFoundPage} />
+            <Redirect to="/404" />
+          </Switch>
+        </Router>
+      </React.Fragment>
     );
   }
 };
