@@ -58,6 +58,7 @@ router.post('/create-charge', async (req, res) => {
 router.post('/create-plan', async (req, res) => {
     
     const customerId = req.body.customerId;
+    console.log('Customer ID: ', customerId);
     const selectedPlan = req.body.selectedPlan;
     let priceId;
 

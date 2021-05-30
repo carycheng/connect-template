@@ -77,6 +77,7 @@ class SignUpModal extends React.Component {
         console.log(createdUser.data);
 
         this.props.fetchUser(createdUser.data);
+        localStorage.setItem('user', JSON.stringify(this.props.user));
 
         if (this.state.checkedState) {
             this.props.history.push('/select-plan');
@@ -146,4 +147,8 @@ class SignUpModal extends React.Component {
     }
 };
 
-export default connect(null, { fetchUser }, null, {forwardRef : true})(SignUpModal);
+const mapStateToProps = (state) => {
+    return { user: state.user }
+};
+
+export default connect(mapStateToProps, { fetchUser }, null, {forwardRef : true})(SignUpModal);

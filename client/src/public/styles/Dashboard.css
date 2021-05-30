@@ -10952,6 +10952,33 @@
   .show > .btn-facebook.dropdown-toggle:focus {
     box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5);
   }
+
+  .pending-section-font-size {
+      float: right;
+      padding-top: 2px;
+      padding-right: 27px;
+      font-size: 14px;
+  }
+
+  .pending-icon {
+      padding-bottom: 2px;
+      padding-left: 4px;
+  }
+
+  .pending-color {
+      color: #ff6961;
+  }
+
+  .verified-section-font-size {
+    float: right;
+    padding-top: 2px;
+    padding-right: 85px;
+    font-size: 14px;
+  }
+
+  .verified-color {
+      color: #3EB489;
+  }
   
   .error {
     color: #5a5c69;

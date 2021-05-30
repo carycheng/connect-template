@@ -10,6 +10,11 @@ const createCharge = async (req, res, next) => {
     const User = new User();
     console.log(User);
 
+    newUser.email = req.body.email;
+    newUser.password = req.body.password;
+    newUser.stripeId = '32525';
+    newUser.phoneNumber = req.body.phoneNumber
+
     // console.log('after new user call');
     // User.save()
     // .then(data=>{

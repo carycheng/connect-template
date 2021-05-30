@@ -1,3 +1,3 @@
 module.exports = {
-    STRIPE_PK: ''
+    STRIPE_PK: 'TEST'
 }

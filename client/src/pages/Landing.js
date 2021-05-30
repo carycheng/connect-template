@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Button, Modal, Card, CardGroup } from 'react-bootstrap';
+import { Button, Modal, Card, CardDeck } from 'react-bootstrap';
 import { ElementsConsumer } from '@stripe/react-stripe-js';
 import axios from 'axios';
 
@@ -27,7 +27,6 @@ class Landing extends React.Component {
         (async () => {
             const response = await axios.get('/api/v1/get-products');
             this.setState({products: response.data.body})
-            console.log('IN MOUNT', this.state.products);
         })()
     }
 
@@ -80,9 +79,9 @@ class Landing extends React.Component {
                 <br />
                 <h2 class="playfair-font-family card-title">Take a look at what's new!</h2>
                 <br />
-                <CardGroup>
+                <CardDeck>
                     { this.renderList() }
-                </CardGroup>
+                </CardDeck>
                 <Footer />
             </React.Fragment>
         );

@@ -38,7 +38,7 @@
 /* Top Slogan */
 .top-banner-slogan {
 	position: absolute;
-	top: 10%;
+	top: 8%;
 	left: 27%;
 	transform: translate(-50%, -50%);
 	font-size: 3.5em;
@@ -47,7 +47,7 @@
 /* Bottom Slogan */
 .bottom-banner-slogan {
 	position: absolute;
-	top: 14%;
+	top: 12%;
 	left: 34%;
 	transform: translate(-50%, -50%);
 	font-size: 2.5em;
@@ -147,8 +147,8 @@
 }
 
 .card-spacing {
-	margin-left: 2%;
-	margin-right: 2%;
+	margin-left: 2%!important;
+	margin-right: 2%!important;
 }
 
 .card-title {

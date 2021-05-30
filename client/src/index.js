@@ -7,7 +7,7 @@ import reducers from './reducers';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe('');
+const stripePromise = loadStripe('TEST');
 
 const store = createStore(reducers);
 
