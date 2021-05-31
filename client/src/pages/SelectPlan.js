@@ -1,15 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
+import { Button, Modal, Tabs, Tab, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 
 import '../public/styles/SelectPlan.css';
 
 class SelectPlan extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: false
+        }
+    }
+
     onSubmit = async (event, text) => {
         event.preventDefault();
-        console.log(this.props.user);
-        console.log(text);
+        this.setState({ loading: true })
 
         const selectedPlan = {
             customerId: this.props.user.stripeCustomerId,
@@ -58,7 +65,10 @@ class SelectPlan extends React.Component {
                                 <li class="pricing__feature">Free access to forums</li>
                                 <li class="pricing__feature">Beginners tips</li>
                             </ul>
-                            <button class="pricing__action">Choose plan</button> 
+                            {this.state.loading ? (  
+                                <button class="pricing__action disabled">
+                                    <Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /> Loading...</button>) :
+                            (<button class="pricing__action">Choose plan</button> )}
                         </form>
                     </div>
                 </section>

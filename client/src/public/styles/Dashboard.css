@@ -9629,6 +9629,10 @@
     color: #dda20a !important;
   }
   
+  .text-pending {
+      color: #ff6961 !important;
+  }
+
   .text-danger {
     color: #e74a3b !important;
   }
@@ -10055,6 +10059,10 @@
   
   .border-left-success {
     border-left: 0.25rem solid #1cc88a !important;
+  }
+
+  .border-left-pending {
+    border-left: 0.25rem solid #ff6961 !important;
   }
   
   .border-bottom-success {
@@ -10774,6 +10782,14 @@
   .btn-icon-split.btn-lg .text, .btn-group-lg > .btn-icon-split.btn .text {
     padding: 0.5rem 1rem;
   }
+
+  .pending-report-btn {
+      width: 125px;
+  }
+
+  .pending-loader-spacing {
+      padding-left: 10px;
+  }
   
   .card .card-header .dropdown {
     line-height: 1;
@@ -10962,7 +10978,6 @@
 
   .pending-icon {
       padding-bottom: 2px;
-      padding-left: 4px;
   }
 
   .pending-color {

@@ -20,9 +20,6 @@ router.post('/create-account-link', async (req, res) => {
 
 router.post('/get-account-info', async (req, res) => {
     const accountId = req.body.stripeAccountId;
-    console.log(req.body);
-
-    console.log('TEST', accountId);
 
     const account = await stripe.accounts.retrieve(
         accountId
@@ -30,6 +27,50 @@ router.post('/get-account-info', async (req, res) => {
 
 
     res.status(200).send({body: account});
+});
+
+router.post('/get-update-link', async (req, res) => {
+    const accountId = req.body.stripeAccountId;
+
+    const loginLink = await stripe.accounts.createLoginLink(
+        accountId
+    );
+
+    res.status(200).send({body: loginLink});
+});
+
+router.post('/generate-report', async (req, res) => {
+    const currentEpoch = Math.trunc(Date.now() / 1000);
+    const yesterdayEpoch = currentEpoch - 86400;
+    const weekAgoEpoch = yesterdayEpoch - 604800;
+
+    const reportRun = await stripe.reporting.reportRuns.create({
+        report_type: 'balance.summary.1',
+        parameters: {
+          interval_start: weekAgoEpoch,
+          interval_end: yesterdayEpoch,
+        },
+    });
+
+    let retrievedReportRun = await stripe.reporting.reportRuns.retrieve(
+        reportRun.id
+    );
+
+    while(retrievedReportRun.status != "succeeded") {
+        retrievedReportRun = await stripe.reporting.reportRuns.retrieve(
+            reportRun.id
+        );
+    }
+    
+    console.log(retrievedReportRun);
+
+    const fileLink = await stripe.fileLinks.create({
+        file: retrievedReportRun.result.id,
+    });
+
+    console.log(fileLink);
+
+    res.status(200).send({body: fileLink});
 });
 
 module.exports = router;

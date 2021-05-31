@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Spinner } from 'react-bootstrap';
 import { Bell, Mailbox, Search, House, ExclamationOctagon, PersonCheck } from 'react-bootstrap-icons';
 import axios from 'axios';
 
@@ -12,8 +13,11 @@ class Dashboard extends React.Component {
         super(props);
         this.state = {
             accountLinkUrl: null,
-            accountStatus: "pending"
+            accountStatus: "pending",
+            loginLinkUrl: null,
+            reportingStatePending: false
         };
+        this.generateReportHandler = this.generateReportHandler.bind(this);
     }
 
     componentDidMount() {
@@ -24,7 +28,8 @@ class Dashboard extends React.Component {
             const accountInfo = await axios.post('/api/v1/get-account-info', parsedUser);
             if (accountInfo.data.body.charges_enabled == true) {
                 this.setState({accountStatus: "verified"});
-                console.log(this.state);
+                const loginLink = await axios.post('/api/v1/get-update-link', parsedUser);
+                this.setState({ loginLinkUrl: loginLink.data.body.url });
             }
             console.log(accountInfo);
             if (this.state.accountLinkUrl == null) {
@@ -32,6 +37,16 @@ class Dashboard extends React.Component {
                 this.setState({accountLinkUrl: response.data.body.url});
             }
         })()
+    }
+
+    async generateReportHandler(event) {
+        event.preventDefault();
+
+        this.setState({reportingStatePending: true})
+        const reportObject = await axios.post('/api/v1/generate-report');
+
+        window.location.href = reportObject.data.body.url;
+        this.setState({reportingStatePending: false})
     }
 
     render() {
@@ -313,7 +328,9 @@ class Dashboard extends React.Component {
                 {/* Page Heading */}
                 <div className="d-sm-flex align-items-center justify-content-between mb-4">
                   <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
-                  <a href="#" className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50" /> Generate Report</a>
+                  {this.state.reportingStatePending == true ? (  
+                    <a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
+                    (<a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50" />Generate Report</a>)}
                 </div>
                 {/* Content Row */}
                 <div className="row">
@@ -381,12 +398,12 @@ class Dashboard extends React.Component {
                   </div>
                   {/* Pending Requests Card Example */}
                   <div className="col-xl-3 col-md-6 mb-4">
-                    <div className={(accountState == "pending") ? "card border-left-warning shadow h-100 py-2": "card border-left-success shadow h-100 py-2"}>
+                    <div className={(accountState == "pending") ? "card border-left-pending shadow h-100 py-2": "card border-left-success shadow h-100 py-2"}>
                       <div className="card-body">
                         <div className="row no-gutters align-items-center">
                           <div className="col mr-2">
                             { accountState == "pending" ?
-                            (<div><div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            (<div><div className="text-xs font-weight-bold text-pending text-uppercase mb-1">
                               Account Status</div>
                               <div class="pending-color">
                                 <ExclamationOctagon className="pending-icon" />
@@ -396,7 +413,7 @@ class Dashboard extends React.Component {
                                     Account Status</div>
                                     <div class="verified-color">
                                     <PersonCheck className="pending-icon" />
-                                    <div className="mb-0 font-weight-bold verified-section-font-size verified-color">Account Verified</div>
+                                    <a href={this.state.loginLinkUrl} target="_blank" className="mb-0 font-weight-bold verified-section-font-size verified-color">Account Verified</a>
                                 </div></div>
                               )
                             }
