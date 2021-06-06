@@ -1,0 +1,356 @@
+  .split {
+    height: 100%;
+    width: 50%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+  }
+
+  .left {
+    left: 0;
+    background-color: #111;
+  }
+  
+  .right {
+    right: 0;
+  }
+
+  .centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  /* Container Ends */
+  
+  /* info Start Here */
+  .info {
+      background: transparent;
+      z-index: 999;
+      position: absolute;
+      top: 38px;
+      left: 205px;
+      float: left;
+  }
+  
+  .info i {
+      color:rgba(255,255,255,0.7);
+      margin-right: 10px;
+      font-weight: 900;
+      font-size:30px;
+      transition:all .4s ease;
+      cursor: pointer;
+      margin-top: 15px;
+  }
+  .info i:hover{
+      color:rgba(255,255,255,1);
+  }
+  
+  .info .imag img {
+      width: 340px;
+      transform: rotate(12deg);
+      margin-left: 10%;
+      padding-bottom: 80px;
+  }
+  .info .imag{position: relative;}
+  .info .imag a:after { 
+         content: '';
+      display: block;
+      position: absolute;
+      left: 16%;
+      top: 310px;
+      width: 54%;
+      max-width: 250px;
+      height: 10px;
+      background: transparent;
+      border-radius: 100px/50px;
+      box-shadow: 0 50px 40px rgba(0,0,0,.7);
+      }
+  
+  .price span {
+      font-family: roboto;
+      font-size: 30px;
+      display: block;
+      padding: 0px 15px;
+      color: #000;
+      font-weight: 900;
+      color:#fff;
+      text-shadow: 0 2px 7px rgba(0, 0, 0, .4);
+  }
+  .price span:last-of-type {
+      font-size:20px;
+      font-weight: 600;
+  }
+  /* Info Ends here */
+  
+  .button-style {
+      width: 250px;
+      background-color: #4379FF !important;
+      border-radius: 25px;
+      position: absolute;
+      right: 25%;
+      top: 110%;
+  }
+
+  .payment-banner {
+      margin-top: -50% !important;
+  }
+
+  .arrow-style {
+      color: white;
+      margin-left: 5%;
+  }
+
+  .card-element-style {
+      margin-top: 10%;
+  }
+
+  .payment-form-width {
+      width: 500px;
+  }
+  
+  
+  /* opacity ends */
+  
+  
+  /* -----------------------------------------------------------------*/
+  
+  /* form Start here */
+  .payment-form-name {
+        font-size: 20px;
+        font-family: roboto;
+        letter-spacing: 1.3px;
+        word-spacing: 3px;
+        margin: -20% 0% 5% 0%;
+   }
+
+   .payment-info-style {
+        position: absolute;
+        top: 85%;
+        margin-left: -50%;
+   }
+
+* {
+    font-size: 15px;
+  }
+  
+  /* Overall Container */
+  
+  #main {
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+    transition: width 0.3s ease-in-out;
+  }
+  
+  #main.checkout:not(.success):not(.error) {
+    width: calc(100% - 450px);
+  }
+
+  .checkbox-style {
+      margin-left: -50%;
+  }
+
+  .checkbox-top-style {
+      margin-top: 5%;
+  }
+
+  .checkboxes label {
+    display: inline-block;
+    padding-right: 10px;
+    white-space: nowrap;
+    margin: 5% 0% 5% -60%;
+  }
+
+  .checkboxes input {
+    vertical-align: middle;
+  }
+  .checkboxes label span {
+    vertical-align: middle;
+  }
+
+  .nav-text {
+    vertical-align: middle;
+    margin-left: 2%;
+  }
+  
+  /* Checkout */
+  
+  #checkout {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 30px 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear 0.5s;
+  }
+  
+  #main.checkout #checkout {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  section {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    text-align: left;
+  }
+  
+
+  
+  /* Form */
+  
+  fieldset {
+    margin: 10px 0px 20px 0px;
+    background: #fff;
+    box-shadow: 0 1px 3px 0 rgba(50, 50, 93, 0.15),
+      0 4px 6px 0 rgba(112, 157, 199, 0.15);
+    border-radius: 4px;
+    border: none;
+    font-size: 0;
+  }
+  
+  fieldset label {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 42px;
+    padding: 10px 0;
+    align-items: center;
+    justify-content: center;
+    color: #8898aa;
+    font-weight: 400;
+  }
+  
+  fieldset label:not(:last-child) {
+    border-bottom: 1px solid #f0f5fa;
+  }
+  
+  fieldset label.state {
+    display: inline-flex;
+    width: 75%;
+  }
+  
+  fieldset:not(.with-state) label.state {
+    display: none;
+  }
+  
+  fieldset label.zip {
+    display: inline-flex;
+    width: 25%;
+    padding-right: 60px;
+  }
+  
+  fieldset:not(.with-state) label.zip {
+    width: 100%;
+  }
+  
+  fieldset label span {
+    min-width: 125px;
+    padding: 0 15px;
+    text-align: right;
+  }
+  
+  fieldset .redirect label span {
+    width: 100%;
+    text-align: center;
+  }
+  
+  p.instruction {
+    display: inline-table;
+    margin-top: -32px;
+    padding: 0 5px;
+    text-align: center;
+    background: #f8fbfd;
+  }
+  
+  
+  span#generate {
+    cursor: pointer;
+    color: #525f7f;
+    text-decoration: underline;
+  }
+  span#generate:hover {
+    text-decoration: none;
+  }
+  
+  .field {
+    flex: 1;
+    padding: 0 15px;
+    background: transparent;
+    font-weight: 400;
+    color: #31325f;
+    outline: none;
+    cursor: text;
+  }
+  
+  .field::-webkit-input-placeholder {
+    color: #aab7c4;
+  }
+  .field::-moz-placeholder {
+    color: #aab7c4;
+  }
+  .field:-ms-input-placeholder {
+    color: #aab7c4;
+  }
+
+  
+  input {
+    flex: 1;
+    border-style: none;
+    outline: none;
+    color: #313b3f;
+  }
+  
+  select {
+    flex: 1;
+    border-style: none;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    outline: none;
+    color: #313b3f;
+    cursor: pointer;
+    background: transparent;
+  }
+  
+  .StripeElement--webkit-autofill {
+    background: transparent !important;
+  }
+  
+  #card-element {
+    margin-top: -1px;
+  }
+  
+  #ideal-bank-element {
+    padding: 0;
+  }
+  
+  
+  #country {
+    display: flex;
+    align-items: center;
+  }
+  
+  #country select {
+    margin: 0 -15px 0 -30px;
+    padding: 0 15px 0 30px;
+  }
+
+  .card-element-style {
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    box-shadow: 0 1px 3px 0 rgba(50, 50, 93, 0.15),
+      0 4px 6px 0 rgba(112, 157, 199, 0.15);
+    border-radius: 4px;
+    border: none;
+    font-size: 0;
+  }
+  

@@ -124,11 +124,8 @@ class SignUpModal extends React.Component {
                                     <div class="form-group">
                                         <input onChange={this.changePhoneNumber} value={this.state.phoneNumber} type="tel" class="form-control rounded-corners" name="telephone" id="signUpPhone" placeholder="enter phone number (6501234567)" />
                                     </div>
-                                    <div class="form-check checkbox-section-position">
-                                        <input id="checkbox" type="checkbox" checked={this.state.checkedState} onChange={this.handleCheckedState}/>
-                                        <label class="checkbox-label-style form-check-label" for="checkbox">
-                                            Create my customer account too!
-                                        </label>
+                                    <div class="form-check checkbox-section-position checkbox-style">
+                                        <label><input id="checkbox" type="checkbox" checked={this.state.checkedState} onChange={this.handleCheckedState}/><span>Sign up for a listing package</span></label>
                                     </div>
                                     { content }
                                     <div class="register-new-user-button-placement">

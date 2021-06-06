@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { Button, Modal, Card, CardDeck } from 'react-bootstrap';
 import { ElementsConsumer } from '@stripe/react-stripe-js';
+import ReactStars from "react-rating-stars-component";
 import axios from 'axios';
 
 import logo from '../public/images/company-icon.png';
-import dashboard from '../public/images/building.jpeg';
+import dashboard from '../public/images/marketplace.jpg';
 import '../public/styles/Landing.css';
 import '../components/Footer';
 import Footer from '../components/Footer';
@@ -36,16 +37,32 @@ class Landing extends React.Component {
             console.log(product);
             return (
                 <Card className="card-spacing">
-                    <Card.Img variant="top" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1350&q=80" />
+                    <Card.Img variant="top" src={product.image_url} className="card-img-body" />
                     <Card.Body>
-                        <Card.Title>Card title</Card.Title>
+                        <Card.Title>{product.name}</Card.Title>
                         <Card.Text>
-                            This is a wider card with supporting text below as a natural lead-in to
-                            additional content. This content is a little bit longer.
+                            {product.description}
                         </Card.Text>
+                        <div className="stars-style">
+                            <ReactStars
+                                count={5}
+                                value={product.rating}
+                                size={20}
+                                activeColor="#F8B705"
+                                isHalf={true}
+                                edit={false}
+                                color="gray"
+                            />
+                        </div>
+                        <div className="ratings-count">
+                            ({Math.floor(Math.random() * 100) + 1})
+                        </div>
                     </Card.Body>
                     <Card.Footer>
-                        <small className="text-muted">Last updated 3 mins ago</small>
+                        <small className="text-muted">Posted {Math.floor(Math.random() * 10) + 1} minutes ago</small>
+                        <div class="checkout-button-style">
+                            <Button variant="primary">Buy Now</Button>
+                        </div>
                     </Card.Footer>
                 </Card>
             );
@@ -69,7 +86,7 @@ class Landing extends React.Component {
                     </div>
                 </nav>
                 <img src={dashboard} class="banner-img-cover" />
-                <div class="top-banner-slogan playfair-font-family" >Everything you need</div>
+                <div class="top-banner-slogan playfair-font-family" >Buy and Sell Easily</div>
                 <div class="bottom-banner-slogan playfair-font-family" >We've got you covered</div>
                 <ElementsConsumer>
                     {({elements, stripe}) => (
