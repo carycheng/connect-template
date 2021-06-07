@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Button, Modal, Card, CardDeck } from 'react-bootstrap';
+import { Button, Modal, Card, CardDeck,  } from 'react-bootstrap';
 import { ElementsConsumer } from '@stripe/react-stripe-js';
 import ReactStars from "react-rating-stars-component";
+import { connect } from 'react-redux';
 import axios from 'axios';
 
 import logo from '../public/images/company-icon.png';
@@ -10,6 +11,7 @@ import '../public/styles/Landing.css';
 import '../components/Footer';
 import Footer from '../components/Footer';
 import SignUpModal from '../components/SignUpModal';
+import { setProduct } from '../actions/index'; 
 
 class Landing extends React.Component {
     constructor(props){
@@ -20,15 +22,20 @@ class Landing extends React.Component {
         this.child = React.createRef();
     }
 
-    showModal = () => {
-        this.child.current.handleModalShowHide();
-    }
-
     componentDidMount() {
         (async () => {
             const response = await axios.get('/api/v1/get-products');
             this.setState({products: response.data.body})
         })()
+    }
+
+    showModal = () => {
+        this.child.current.handleModalShowHide();
+    }
+
+    handleItemSelect(product) {
+        this.props.setProduct(product);
+        this.props.history.push('/checkout');
     }
 
     renderList() {
@@ -61,7 +68,7 @@ class Landing extends React.Component {
                     <Card.Footer>
                         <small className="text-muted">Posted {Math.floor(Math.random() * 10) + 1} minutes ago</small>
                         <div class="checkout-button-style">
-                            <Button variant="primary">Buy Now</Button>
+                            <Button onClick={() => this.handleItemSelect(product)} variant="primary">Buy Now</Button>
                         </div>
                     </Card.Footer>
                 </Card>
@@ -105,4 +112,4 @@ class Landing extends React.Component {
     }
 };
 
-export default Landing;
+export default connect(null, { setProduct }, null)(Landing);

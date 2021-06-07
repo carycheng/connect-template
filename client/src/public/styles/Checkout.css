@@ -200,8 +200,11 @@
     position: relative;
     text-align: left;
   }
-  
 
+  .checkout-img-body {
+        width: 350px;
+        margin-top: 20%;
+   }
   
   /* Form */
   

@@ -1,5 +1,6 @@
 import React from "react";
 import {BrowserRouter as Router, Route, Switch, Link, Redirect} from 'react-router-dom';
+import { ElementsConsumer } from "@stripe/react-stripe-js";
 
 import Landing from './pages/Landing';
 import SelectPlan from './pages/SelectPlan';
@@ -19,7 +20,7 @@ class App extends React.Component {
             <Route exact path="/" component={Landing} />
             <Route exact path="/select-plan" component={SelectPlan} />
             <Route exact path="/dashboard" component={Dashboard} />
-            <Route exact path="/checkout" component={Checkout} />
+            <Route exact path="/checkout" component={InjectedCheckoutForm} />
             <Route component={NotFoundPage} />
             <Redirect to="/404" />
           </Switch>
@@ -28,5 +29,13 @@ class App extends React.Component {
     );
   }
 };
+
+const InjectedCheckoutForm = () => (
+  <ElementsConsumer>
+    {({stripe, elements}) => (
+      <Checkout stripe={stripe} elements={elements} />
+    )}
+  </ElementsConsumer>
+);
 
 export default App;
