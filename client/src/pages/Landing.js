@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button, Modal, Card, CardDeck,  } from 'react-bootstrap';
 import { ElementsConsumer } from '@stripe/react-stripe-js';
+import {loadStripe} from '@stripe/stripe-js';
 import ReactStars from "react-rating-stars-component";
 import { connect } from 'react-redux';
 import axios from 'axios';
@@ -14,18 +15,23 @@ import SignUpModal from '../components/SignUpModal';
 import { setProduct } from '../actions/index'; 
 
 class Landing extends React.Component {
-    constructor(props){
+
+    constructor(props) {
         super(props);
         this.state = {
             products: [],
+            stripe: null
         };
         this.child = React.createRef();
     }
 
     componentDidMount() {
+
         (async () => {
+            const stripe = await loadStripe('TEST');
             const response = await axios.get('/api/v1/get-products');
-            this.setState({products: response.data.body})
+            this.setState({ products: response.data.body })
+            this.setState({ stripe: stripe })
         })()
     }
 
@@ -36,6 +42,16 @@ class Landing extends React.Component {
     handleItemSelect(product) {
         this.props.setProduct(product);
         this.props.history.push('/checkout');
+    }
+
+    checkoutHandler(product) {
+
+        (async () => {
+            console.log(product);
+            const sessionId = await axios.post('/api/v1/create-checkout-session', product);
+            console.log(sessionId);
+            await this.state.stripe.redirectToCheckout({ sessionId: sessionId.data.body });
+        })()
     }
 
     renderList() {
@@ -64,11 +80,16 @@ class Landing extends React.Component {
                         <div className="ratings-count">
                             ({Math.floor(Math.random() * 100) + 1})
                         </div>
+                        <div className="posting-time-style">
+                            <small className="text-muted">Posted {Math.floor(Math.random() * 10) + 1} minutes ago</small>
+                        </div>
                     </Card.Body>
                     <Card.Footer>
-                        <small className="text-muted">Posted {Math.floor(Math.random() * 10) + 1} minutes ago</small>
                         <div class="checkout-button-style">
-                            <Button onClick={() => this.handleItemSelect(product)} variant="primary">Buy Now</Button>
+                            <Button onClick={() => this.checkoutHandler(product)} variant="primary">Buy With Checkout</Button>
+                        </div>
+                        <div class="checkout-button-style checkout-button-spacing">
+                            <Button onClick={() => this.handleItemSelect(product)} variant="primary">Buy With Elements</Button>
                         </div>
                     </Card.Footer>
                 </Card>

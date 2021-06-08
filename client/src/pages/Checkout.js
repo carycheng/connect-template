@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Button, Image, Spinner } from 'react-bootstrap';
-import { ArrowBarLeft, CalendarCheck } from 'react-bootstrap-icons';
+import { ArrowBarLeft, CalendarCheck, GiftFill } from 'react-bootstrap-icons';
 import { CardElement } from "@stripe/react-stripe-js";
 import axios from 'axios';
 
@@ -15,12 +15,14 @@ class Checkout extends React.Component {
         this.state = {
             checked: false,
             productPrice: 0,
-            paymentIntent: null,
-            pi_client_secret: null,
+            recurringProductPrice: 0,
+            recurringProductPriceId: null,
             email: '',
             name: '',
             payStateActive: false,
-            checkoutComplete: false
+            checkoutComplete: false,
+            paymentIntentPrice: 0,
+            receiptUrl: null
         };
         this.handleCheckedState = this.handleCheckedState.bind(this);
         this.changeEmail = this.changeEmail.bind(this);
@@ -47,14 +49,17 @@ class Checkout extends React.Component {
     }
 
     componentDidMount() {
+        this.setState({ checkoutComplete: false })
+        this.setState({ receiptUrl: null})
         let productInfo = null;
         let paymentIntent = null;
         (async () => {
             productInfo = await axios.post('/api/v1/get-product-info', this.props.product)
-            paymentIntent = await axios.post('/api/v1/create-payment-intent', { amount: productInfo.data.body.unit_amount });
-            this.setState({ productPrice: productInfo.data.body.unit_amount / 100 });
-            this.setState({ paymentIntent: paymentIntent.id });
-            this.setState({ pi_client_secret: paymentIntent.data.body.client_secret });
+            console.log('product info', productInfo);
+            this.setState({ paymentIntentPrice: productInfo.data.body.oneTimePrice.unit_amount })
+            this.setState({ productPrice: productInfo.data.body.oneTimePrice.unit_amount / 100 });
+            this.setState({ recurringProductPrice: productInfo.data.body.recurringPrice.unit_amount / 100 })
+            this.setState({ recurringProductPriceId: productInfo.data.body.recurringPrice.id})
         })()
     }
 
@@ -74,33 +79,63 @@ class Checkout extends React.Component {
             card: cardElement,
         });
 
-        stripe
-            .confirmPaymentIntent(this.state.pi_client_secret, {
-                payment_method: paymentMethod.id,
-                setup_future_usage: 'off_session',
-                return_url: 'http://localhost:3000/checkout',
-            })
-            .then(function(result) {
-                // Handle result.error or result.paymentIntent
-            });
-        
-        const customer = {
-            email: this.state.email,
-            name: this.state.name,
-            payment_method: paymentMethod.id
+        if (this.state.checked) {
+            
+            const subscriptionCustomer = {
+                email: this.state.email,
+                name: this.state.name,
+                payment_method: paymentMethod.id
+            }
+
+            console.log('sub customer', subscriptionCustomer);
+
+            const subscribedCustomer = await axios.post('/api/v1/attach-payment-method', subscriptionCustomer);
+
+            console.log('sub customer 2', subscribedCustomer);
+
+            const subSchedule = {
+                customer: subscribedCustomer.data.body.customer,
+                priceId: this.state.recurringProductPriceId
+            }
+
+            await axios.post('/api/v1/create-installment-plan', subSchedule);
+
+        } else {
+            const paymentIntent = await axios.post('/api/v1/create-payment-intent', {amount: this.state.paymentIntentPrice});
+
+            const response = await stripe
+                .confirmCardPayment(paymentIntent.data.body.client_secret, {
+                    payment_method: {
+                        card: cardElement
+                    },
+                });
+
+            const receiptUrl = await axios.post('/api/v1/get-receipt-url', {payment_intent_id: response.paymentIntent.id});
+
+            console.log(receiptUrl);
+
+            this.setState({ receiptUrl: receiptUrl.data.body});
+
+            const customer = {
+                email: this.state.email,
+                name: this.state.name,
+                payment_method: paymentMethod.id
+            }
+
+            const customerResponse = await axios.post('/api/v1/attach-payment-method', customer);
         }
 
-        const customerResponse = await axios.post('/api/v1/attach-payment-method', customer);
-
         this.setState({ checkoutComplete: true })
-
-        console.log(customerResponse);
     }
     
     render() {
         const content = this.state.checked
-            ? <div><CalendarCheck className="icon-align"/><span className="nav-text">Pay in 4 installments of</span></div>
+            ? <div><CalendarCheck className="icon-align"/><span className="nav-text">Pay in 4 easy installments of ${ this.state.recurringProductPrice } / month </span></div>
             : null;
+
+        const receiptContent = this.state.receiptUrl
+            ? <a href={this.state.receiptUrl} target="_"><GiftFill className="gift-fill-style"/>Your receipt can be found here</a>
+            : <Link to="/">Continue Shopping?</Link>
         return(
                 <div>
                     <div class="split left">
@@ -114,6 +149,7 @@ class Checkout extends React.Component {
                         </div>
                     </div>
                     <div class="split right">
+                        {(this.state.checkoutComplete === false) ? (
                         <div class="form centered">
                             <div className="payment-form-name">Payment information</div>
                             <form onSubmit={this.onSubmit}>
@@ -193,7 +229,19 @@ class Checkout extends React.Component {
                                         <Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /></Button>) :
                                 (<Button type="submit" variant="primary" className="button-style" size="md" active>Pay Now</Button>)}
                             </form>
-                        </div>
+                        </div>) : (
+                            <div className="form thank-you-message-style playfair-font-family">
+                                <div className="thank-you-message-font-size">
+                                    Thank you!
+                                </div>
+                                <div>
+                                    Your item is on its way!
+                                </div>
+                                <div className="continue-style">
+                                    { receiptContent }
+                                </div>
+                            </div>)   
+                        }
                     </div>
                 </div>
         );

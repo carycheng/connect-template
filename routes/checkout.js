@@ -6,21 +6,27 @@ const stripe = require('stripe')(keys.STRIPE_SK);
 
 router.post('/get-product-info', async (req, res) => {
 
-    const prices = await stripe.prices.list({
+    const oneTimePrice = await stripe.prices.list({
         product: req.body.stripe_product_id,
+        type: 'one_time'
     });
 
-    console.log(prices);
+    const recurringPrice = await stripe.prices.list({
+        product: req.body.stripe_product_id,
+        type: 'recurring'
+    });
 
-    res.status(200).send({body: prices.data[0]});
+    console.log('one time', oneTimePrice);
+    console.log('recurring', recurringPrice);
+
+    res.status(200).send({body: {oneTimePrice: oneTimePrice.data[0], recurringPrice: recurringPrice.data[0] }});
 });
 
 router.post('/create-payment-intent', async (req, res) => {
 
     const paymentIntent = await stripe.paymentIntents.create({
         amount: req.body.amount,
-        currency: 'usd',
-        payment_method_types: ['card'],
+        currency: 'usd'
     });
     
     res.status(200).send({body: paymentIntent});
@@ -33,14 +39,89 @@ router.post('/attach-payment-method', async (req, res) => {
         name: req.body.name
     });
 
+    console.log('Customer', customer);
+
     const paymentMethod = await stripe.paymentMethods.attach(
         req.body.payment_method,
         {customer: customer.id}
     );
 
+    await stripe.customers.update(
+        customer.id,
+        {invoice_settings: {default_payment_method: paymentMethod.id}}
+    );
+
     console.log(paymentMethod);
 
     res.status(200).send({body: paymentMethod});
+});
+
+router.post('/confirm-card-payment', async (req, res) => {
+
+    console.log(req.body);
+
+    const paymentIntent = await stripe.paymentIntents.confirm(
+        req.body.payment_intent_id,
+        {
+            payment_method: req.body.payment_method,
+            setup_future_usage: 'off_session'
+        }
+    );
+
+    res.status(200).send({body: paymentIntent});
+});
+
+router.post('/create-installment-plan', async (req, res) => {
+    
+    const subscriptionSchedule = await stripe.subscriptionSchedules.create({
+        customer: req.body.customer,
+        start_date: 'now',
+        end_behavior: 'cancel',
+        phases: [
+          {
+            items: [
+              {
+                price: req.body.priceId,
+                quantity: 1,
+              },
+            ],
+            iterations: 4,
+          },
+        ],
+    });
+
+    console.log(subscriptionSchedule);
+
+    res.status(200).send({body: subscriptionSchedule});
+});
+
+router.post('/get-receipt-url', async (req, res) => {
+
+    const charges = await stripe.charges.list({
+        payment_intent: req.body.payment_intent_id,
+    });
+
+    res.status(200).send({body: charges.data[0].receipt_url});
+});
+
+router.post('/create-checkout-session', async (req, res) => {
+
+    const oneTimePrice = await stripe.prices.list({
+        product: req.body.stripe_product_id,
+        type: 'one_time'
+    });
+
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+            {price: oneTimePrice.data[0].id, quantity: 1},
+        ],
+        mode: 'payment',
+        success_url: 'http://localhost:3000',
+        cancel_url: 'http://localhost:3000',
+    });
+
+    res.status(200).send({ body: session.id });
 });
 
 module.exports = router;

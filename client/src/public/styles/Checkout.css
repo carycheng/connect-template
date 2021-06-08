@@ -24,6 +24,26 @@
     transform: translate(-50%, -50%);
     text-align: center;
   }
+
+  .thank-you-message-style {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .thank-you-message-font-size {
+    font-size: 40px;
+  }
+
+  .continue-style {
+      margin-top: 5%;
+  }
+
+  .gift-fill-style {
+      margin-right: 1%;
+  }
   
   /* Container Ends */
   

@@ -211,6 +211,17 @@
 	margin: 0% 0% 15.2% 25%;
 }
 
+.checkout-button-spacing {
+	margin-right: 1% !important;
+}
+
+.posting-time-style {
+	position: absolute;
+	bottom: 0;
+	margin-left: 65%;
+	margin-bottom: 14%;
+}
+
 /*
 * Extra utilities
 */
