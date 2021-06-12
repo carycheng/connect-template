@@ -24,9 +24,14 @@ router.post('/get-product-info', async (req, res) => {
 
 router.post('/create-payment-intent', async (req, res) => {
 
+    console.log('Connected Account: ', req.body);
     const paymentIntent = await stripe.paymentIntents.create({
         amount: req.body.amount,
-        currency: 'usd'
+        currency: 'usd',
+        transfer_data: {
+            destination: req.body.connected_account_id
+        },
+        application_fee_amount:500,
     });
     
     res.status(200).send({body: paymentIntent});
@@ -81,16 +86,41 @@ router.post('/create-installment-plan', async (req, res) => {
           {
             items: [
               {
-                price: req.body.priceId,
+                price: req.body.price_id,
                 quantity: 1,
               },
             ],
             iterations: 4,
           },
         ],
+        default_settings: {
+            application_fee_percent: 5,
+            default_payment_method: req.body.payment_method,
+            transfer_data: {
+                destination: req.body.connected_account_id
+            }
+        }
     });
 
-    console.log(subscriptionSchedule);
+    const subscription = await stripe.subscriptions.retrieve(
+        subscriptionSchedule.subscription
+    );
+    
+    const invoice = await stripe.invoices.update(
+        subscription.latest_invoice,
+        {
+            default_payment_method: req.body.payment_method,
+            auto_advance: true,
+            collection_method: 'charge_automatically'
+        }
+    );
+
+    await stripe.invoices.finalizeInvoice(
+        invoice.id,
+        {auto_advance: true}
+    );
+
+    console.log(subscription);
 
     res.status(200).send({body: subscriptionSchedule});
 });
@@ -117,6 +147,10 @@ router.post('/create-checkout-session', async (req, res) => {
             {price: oneTimePrice.data[0].id, quantity: 1},
         ],
         mode: 'payment',
+        payment_intent_data: {
+            application_fee_amount: 500,
+            transfer_data: { destination: req.body.lister_id }
+        },
         success_url: 'http://localhost:3000',
         cancel_url: 'http://localhost:3000',
     });

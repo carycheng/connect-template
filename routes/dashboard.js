@@ -73,4 +73,24 @@ router.post('/generate-report', async (req, res) => {
     res.status(200).send({body: fileLink});
 });
 
+router.post('/get-transfers', async (req, res) => {
+
+    var charges = [];
+    let charge;
+
+    const transfers = await stripe.transfers.list({
+        destination: req.body.stripeAccountId,
+        limit: 3,
+    });
+
+    console.log(transfers);
+
+    for (const transfer of transfers.data) {
+        charge = await stripe.charges.retrieve(transfer.source_transaction)
+        charges.push(charge);
+    }
+
+    res.status(200).send({body: charges});
+});
+
 module.exports = router;

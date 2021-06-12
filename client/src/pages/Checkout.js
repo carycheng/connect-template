@@ -17,6 +17,7 @@ class Checkout extends React.Component {
             productPrice: 0,
             recurringProductPrice: 0,
             recurringProductPriceId: null,
+            connectedAccountId: null,
             email: '',
             name: '',
             payStateActive: false,
@@ -51,6 +52,8 @@ class Checkout extends React.Component {
     componentDidMount() {
         this.setState({ checkoutComplete: false })
         this.setState({ receiptUrl: null})
+        console.log('Lister ID: ', this.props.product.lister_id);
+        this.setState({ connectedAccountId: this.props.product.lister_id })
         let productInfo = null;
         let paymentIntent = null;
         (async () => {
@@ -87,21 +90,19 @@ class Checkout extends React.Component {
                 payment_method: paymentMethod.id
             }
 
-            console.log('sub customer', subscriptionCustomer);
-
             const subscribedCustomer = await axios.post('/api/v1/attach-payment-method', subscriptionCustomer);
-
-            console.log('sub customer 2', subscribedCustomer);
 
             const subSchedule = {
                 customer: subscribedCustomer.data.body.customer,
-                priceId: this.state.recurringProductPriceId
+                price_id: this.state.recurringProductPriceId,
+                connected_account_id: this.state.connectedAccountId,
+                payment_method: paymentMethod.id
             }
 
             await axios.post('/api/v1/create-installment-plan', subSchedule);
 
         } else {
-            const paymentIntent = await axios.post('/api/v1/create-payment-intent', {amount: this.state.paymentIntentPrice});
+            const paymentIntent = await axios.post('/api/v1/create-payment-intent', {amount: this.state.paymentIntentPrice, connected_account_id: this.state.connectedAccountId });
 
             const response = await stripe
                 .confirmCardPayment(paymentIntent.data.body.client_secret, {
@@ -134,7 +135,7 @@ class Checkout extends React.Component {
             : null;
 
         const receiptContent = this.state.receiptUrl
-            ? <a href={this.state.receiptUrl} target="_"><GiftFill className="gift-fill-style"/>Your receipt can be found here</a>
+            ? <a href={this.state.receiptUrl} target="_"><GiftFill className="gift-fill-style"/>Copy of your receipt</a>
             : <Link to="/">Continue Shopping?</Link>
         return(
                 <div>

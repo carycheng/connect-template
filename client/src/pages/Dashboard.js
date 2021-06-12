@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Spinner } from 'react-bootstrap';
+import { Spinner, Table } from 'react-bootstrap';
 import { Bell, Mailbox, Search, House, ExclamationOctagon, PersonCheck } from 'react-bootstrap-icons';
 import axios from 'axios';
 
@@ -15,7 +15,8 @@ class Dashboard extends React.Component {
             accountLinkUrl: null,
             accountStatus: "pending",
             loginLinkUrl: null,
-            reportingStatePending: false
+            reportingStatePending: false,
+            charges: null
         };
         this.generateReportHandler = this.generateReportHandler.bind(this);
     }
@@ -36,6 +37,11 @@ class Dashboard extends React.Component {
                 const response = await axios.post('/api/v1/create-account-link', parsedUser);
                 this.setState({accountLinkUrl: response.data.body.url});
             }
+
+            let charges = await axios.post('/api/v1/get-transfers', parsedUser);
+
+            console.log('Charges: ', charges);
+            this.setState({charges: charges.data.body})
         })()
     }
 
@@ -47,6 +53,26 @@ class Dashboard extends React.Component {
 
         window.location.href = reportObject.data.body.url;
         this.setState({reportingStatePending: false})
+    }
+    
+    renderList() {
+        if (this.state.charges == null) {
+            return null;
+        } else {
+            console.log('in else', this.state.charges);
+            return this.state.charges.map(charge => {
+                console.log('in charge', charge);
+                return(<tr>
+                    <td>1</td>
+                    <td>${charge.amount/100}.00</td>
+                    <td>Table cell</td>
+                    <td>{charge.outcome.risk_level}</td>
+                    <td>{charge.outcome.risk_score}</td>
+                    <td>Table cell</td>
+                    <td>Table cell</td>
+                </tr>);
+            });
+        }
     }
 
     render() {
@@ -450,7 +476,22 @@ class Dashboard extends React.Component {
                       {/* Card Body */}
                       <div className="card-body">
                         <div className="chart-area">
-                          <canvas id="myAreaChart" />
+                        <Table responsive="sm">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Table heading</th>
+                                <th>Table heading</th>
+                                <th>Table heading</th>
+                                <th>Table heading</th>
+                                <th>Table heading</th>
+                                <th>Table heading</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                { this.renderList() }
+                            </tbody>
+                        </Table>
                         </div>
                       </div>
                     </div>

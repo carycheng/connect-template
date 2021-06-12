@@ -33,12 +33,14 @@ const registrationAPI = require('./routes/registration');
 const productsAPI = require('./routes/products');
 const dashboardAPI = require('./routes/dashboard');
 const checkoutAPI = require ('./routes/checkout');
+const loginAPI = require('./routes/login');
 
 // Configure app to use route
 app.use('/api/v1/', registrationAPI);
 app.use('/api/v1/', productsAPI);
 app.use('/api/v1/', dashboardAPI);
 app.use('/api/v1/', checkoutAPI);
+app.use('/api/v1', loginAPI);
 
 // This middleware informs the express application to serve our compiled React files
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {

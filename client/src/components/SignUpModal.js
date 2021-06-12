@@ -23,6 +23,7 @@ class SignUpModal extends React.Component {
         this.changePhoneNumber = this.changePhoneNumber.bind(this);
         this.handleCheckedState = this.handleCheckedState.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onSignIn = this.onSignIn.bind(this);
     }
 
     handleModalShowHide() {
@@ -45,6 +46,19 @@ class SignUpModal extends React.Component {
             email: event.target.value
         });
     }
+
+    onSignIn = async event => {
+        event.preventDefault();
+
+        const User = {
+            email: this.state.email
+        }
+
+        const foundUser = await axios.post('/api/v1/get-user', User)
+        localStorage.setItem('user', JSON.stringify(foundUser.data.body));
+
+        this.props.history.push('/dashboard');
+    };
 
     onSubmit = async event => {
         event.preventDefault();
@@ -99,10 +113,10 @@ class SignUpModal extends React.Component {
                     <Modal.Body>
                         <Tabs className="open-sans-font-family" defaultActiveKey="profile" id="uncontrolled-tab-example">
                             <Tab eventKey="home" title="Sign In">
-                                <form class="open-sans-font-family" action="/auth/login" method="POST">
+                                <form onSubmit={this.onSignIn} class="open-sans-font-family">
                                     <div class="form-group">
                                         <label class="tab-message-helper login-input-text-color sigin-tab-top-padding" for="signInEmail">Email Address</label>
-                                        <input type="email" class="form-control rounded-corners" name="email" id="signInEmail" aria-describedby="emailHelp" placeholder="enter email" />
+                                        <input onChange={this.changeEmail} value={this.state.email} type="email" class="form-control rounded-corners" name="email" id="signInEmail" aria-describedby="emailHelp" placeholder="enter email" />
                                     </div>
                                     <div class="form-group">
                                         <label class="tab-message-helper login-input-text-color" for="signInPassword">Password</label>
