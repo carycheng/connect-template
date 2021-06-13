@@ -11306,4 +11306,18 @@
   body.sidebar-toggled footer.sticky-footer {
     width: 100%;
   }
-  
+
+  .numberCircle {
+    width: 20px;
+    line-height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 10px;
+    border: 1px solid #1EA672;
+    background-color: #1EA672;
+    color: #fff;
+}
+
+.risk-score-padding {
+    padding-left: 5%!important;
+}

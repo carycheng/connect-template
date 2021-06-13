@@ -93,4 +93,15 @@ router.post('/get-transfers', async (req, res) => {
     res.status(200).send({body: charges});
 });
 
+router.post('/get-account-balance', async (req, res) => {
+    
+    const balance = await stripe.balance.retrieve({
+        stripeAccount: req.body.stripeAccountId
+    });
+
+    console.log('Balance', balance);
+
+    res.status(200).send({body: balance});
+});
+
 module.exports = router;

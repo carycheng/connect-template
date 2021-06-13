@@ -12,6 +12,7 @@ class Dashboard extends React.Component {
     constructor(props){
         super(props);
         this.state = {
+            accountBalance: null,
             accountLinkUrl: null,
             accountStatus: "pending",
             loginLinkUrl: null,
@@ -27,6 +28,9 @@ class Dashboard extends React.Component {
 
         (async () => {
             const accountInfo = await axios.post('/api/v1/get-account-info', parsedUser);
+            const accountBalance = await axios.post('/api/v1/get-account-balance', parsedUser);
+            this.setState({accountBalance: accountBalance})
+            console.log('Account Balance', this.state.accountBalance);
             if (accountInfo.data.body.charges_enabled == true) {
                 this.setState({accountStatus: "verified"});
                 const loginLink = await axios.post('/api/v1/get-update-link', parsedUser);
@@ -63,13 +67,11 @@ class Dashboard extends React.Component {
             return this.state.charges.map(charge => {
                 console.log('in charge', charge);
                 return(<tr>
-                    <td>1</td>
                     <td>${charge.amount/100}.00</td>
-                    <td>Table cell</td>
+                    <td>${charge.application_fee_amount == null ? 0 : charge.application_fee_amount/100}.00</td>
                     <td>{charge.outcome.risk_level}</td>
-                    <td>{charge.outcome.risk_score}</td>
-                    <td>Table cell</td>
-                    <td>Table cell</td>
+                    <td className="risk-score-padding" ><div class={charge.outcome.risk_score < 65 ? "numberCircle" : "numberCircle"}>{charge.outcome.risk_score}</div></td>
+                    <td>{charge.outcome.seller_message}</td>
                 </tr>);
             });
         }
@@ -367,8 +369,8 @@ class Dashboard extends React.Component {
                         <div className="row no-gutters align-items-center">
                           <div className="col mr-2">
                             <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                              Earnings (Monthly)</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">$0.00</div>
+                              Available Balance </div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.accountBalance.data.body.available[0].amount/100}.00</div>
                           </div>
                           <div className="col-auto">
                             <i className="fas fa-calendar fa-2x text-gray-300" />
@@ -384,8 +386,8 @@ class Dashboard extends React.Component {
                         <div className="row no-gutters align-items-center">
                           <div className="col mr-2">
                             <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                              Earnings (Annual)</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">$0.00</div>
+                              Pending Balance</div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.accountBalance.data.body.pending[0].amount/100}.00</div>
                           </div>
                           <div className="col-auto">
                             <i className="fas fa-dollar-sign fa-2x text-gray-300" />
@@ -476,16 +478,14 @@ class Dashboard extends React.Component {
                       {/* Card Body */}
                       <div className="card-body">
                         <div className="chart-area">
-                        <Table responsive="sm">
+                        <Table borderless responsive="sm">
                             <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Table heading</th>
-                                <th>Table heading</th>
-                                <th>Table heading</th>
-                                <th>Table heading</th>
-                                <th>Table heading</th>
-                                <th>Table heading</th>
+                                <th>Payment</th>
+                                <th>Fee</th>
+                                <th>Risk Level</th>
+                                <th>Risk Score</th>
+                                <th>Status</th>
                             </tr>
                             </thead>
                             <tbody>
