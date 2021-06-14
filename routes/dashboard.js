@@ -41,7 +41,7 @@ router.post('/get-update-link', async (req, res) => {
 
 router.post('/generate-report', async (req, res) => {
     const currentEpoch = Math.trunc(Date.now() / 1000);
-    const yesterdayEpoch = currentEpoch - 86400;
+    const yesterdayEpoch = currentEpoch - 160000;
     const weekAgoEpoch = yesterdayEpoch - 604800;
 
     const reportRun = await stripe.reporting.reportRuns.create({
@@ -62,13 +62,9 @@ router.post('/generate-report', async (req, res) => {
         );
     }
     
-    console.log(retrievedReportRun);
-
     const fileLink = await stripe.fileLinks.create({
         file: retrievedReportRun.result.id,
     });
-
-    console.log(fileLink);
 
     res.status(200).send({body: fileLink});
 });
@@ -82,8 +78,6 @@ router.post('/get-transfers', async (req, res) => {
         destination: req.body.stripeAccountId,
         limit: 3,
     });
-
-    console.log(transfers);
 
     for (const transfer of transfers.data) {
         charge = await stripe.charges.retrieve(transfer.source_transaction)
@@ -99,9 +93,32 @@ router.post('/get-account-balance', async (req, res) => {
         stripeAccount: req.body.stripeAccountId
     });
 
-    console.log('Balance', balance);
-
     res.status(200).send({body: balance});
+});
+
+router.post('/create-payout', async (req, res) => {
+
+    const payout = await stripe.payouts.create({
+        amount: req.body.payoutAmount,
+        currency: 'usd',
+    }, {
+        stripeAccount: req.body.accountId,
+    });
+
+    res.status(200).send({body: payout});
+});
+
+router.post('/get-payouts', async (req, res) => {
+
+    console.log(req.body)
+    
+    const payouts = await stripe.payouts.list({
+        limit: 3
+    }, {
+        stripeAccount: req.body.stripeAccountId,
+    });
+    
+    res.status(200).send({body: payouts});
 });
 
 module.exports = router;

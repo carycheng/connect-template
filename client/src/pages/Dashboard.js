@@ -13,38 +13,53 @@ class Dashboard extends React.Component {
         super(props);
         this.state = {
             accountBalance: null,
+            availableBalance: null,
+            pendingBalance: null,
+            accountId: null,
             accountLinkUrl: null,
+            payouts: null,
             accountStatus: "pending",
             loginLinkUrl: null,
             reportingStatePending: false,
-            charges: null
+            payoutStatePending: false,
+            charges: null,
+            parsedUser: null,
         };
         this.generateReportHandler = this.generateReportHandler.bind(this);
+        this.createPayoutHandler = this.createPayoutHandler.bind(this);
     }
 
     componentDidMount() {
         const savedUser = localStorage.getItem('user')
         const parsedUser = JSON.parse(savedUser);
 
+
         (async () => {
+            this.setState({parsedUser: parsedUser})
+
+            const payouts = await axios.post('/api/v1/get-payouts', parsedUser);
             const accountInfo = await axios.post('/api/v1/get-account-info', parsedUser);
             const accountBalance = await axios.post('/api/v1/get-account-balance', parsedUser);
+            this.setState({accountId: accountInfo.data.body.id})
+            this.setState({payouts: payouts.data})
+            console.log('Payouts', this.state.payouts);
+
             this.setState({accountBalance: accountBalance})
-            console.log('Account Balance', this.state.accountBalance);
+            this.setState({availableBalance: this.state.accountBalance.data.body.available[0].amount})
+            this.setState({pendingBalance: this.state.accountBalance.data.body.pending[0].amount})
+
             if (accountInfo.data.body.charges_enabled == true) {
                 this.setState({accountStatus: "verified"});
                 const loginLink = await axios.post('/api/v1/get-update-link', parsedUser);
                 this.setState({ loginLinkUrl: loginLink.data.body.url });
             }
-            console.log(accountInfo);
+
             if (this.state.accountLinkUrl == null) {
                 const response = await axios.post('/api/v1/create-account-link', parsedUser);
                 this.setState({accountLinkUrl: response.data.body.url});
             }
 
             let charges = await axios.post('/api/v1/get-transfers', parsedUser);
-
-            console.log('Charges: ', charges);
             this.setState({charges: charges.data.body})
         })()
     }
@@ -58,20 +73,48 @@ class Dashboard extends React.Component {
         window.location.href = reportObject.data.body.url;
         this.setState({reportingStatePending: false})
     }
+
+    async createPayoutHandler(event) {
+        event.preventDefault();
+
+        this.setState({payoutStatePending: true})
+
+        const payoutInfo = {
+            accountId: this.state.accountId,
+            payoutAmount: this.state.availableBalance
+        }
+        const payout = await axios.post('/api/v1/create-payout', payoutInfo);
+        this.setState({payoutStatePending: false})
+        this.setState({availableBalance: 0})
+    }
     
     renderList() {
         if (this.state.charges == null) {
             return null;
         } else {
-            console.log('in else', this.state.charges);
             return this.state.charges.map(charge => {
-                console.log('in charge', charge);
                 return(<tr>
                     <td>${charge.amount/100}.00</td>
                     <td>${charge.application_fee_amount == null ? 0 : charge.application_fee_amount/100}.00</td>
                     <td>{charge.outcome.risk_level}</td>
                     <td className="risk-score-padding" ><div class={charge.outcome.risk_score < 65 ? "numberCircle" : "numberCircle"}>{charge.outcome.risk_score}</div></td>
                     <td>{charge.outcome.seller_message}</td>
+                </tr>);
+            });
+        }
+    }
+
+    renderPayouts() {
+        if (this.state.payouts == null) {
+            return null;
+        } else {
+            return this.state.payouts.body.data.map(payout => {
+                var date = new Date(payout.arrival_date * 1000)
+                console.log('Date: ', date);
+                return(<tr>
+                    <td>${payout.amount/100}.00</td>
+                    <td>{payout.status}</td>
+                    <td>{date.toDateString()}</td>
                 </tr>);
             });
         }
@@ -352,10 +395,13 @@ class Dashboard extends React.Component {
               </nav>
               {/* End of Topbar */}
               {/* Begin Page Content */}
-              <div className="container-fluid">
+              <div className="container-fluid dashboard-style">
                 {/* Page Heading */}
                 <div className="d-sm-flex align-items-center justify-content-between mb-4">
                   <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
+                  {this.state.payoutStatePending == true ? (  
+                    <a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn payout-button-style"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
+                    this.state.accountBalance == 0 ? (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>) : (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>)}
                   {this.state.reportingStatePending == true ? (  
                     <a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
                     (<a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50" />Generate Report</a>)}
@@ -370,7 +416,7 @@ class Dashboard extends React.Component {
                           <div className="col mr-2">
                             <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
                               Available Balance </div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.accountBalance.data.body.available[0].amount/100}.00</div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.availableBalance/100}.00</div>
                           </div>
                           <div className="col-auto">
                             <i className="fas fa-calendar fa-2x text-gray-300" />
@@ -387,7 +433,7 @@ class Dashboard extends React.Component {
                           <div className="col mr-2">
                             <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
                               Pending Balance</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.accountBalance.data.body.pending[0].amount/100}.00</div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.pendingBalance/100}.00</div>
                           </div>
                           <div className="col-auto">
                             <i className="fas fa-dollar-sign fa-2x text-gray-300" />
@@ -501,7 +547,7 @@ class Dashboard extends React.Component {
                     <div className="card shadow mb-4">
                       {/* Card Header - Dropdown */}
                       <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 className="m-0 font-weight-bold text-primary">Revenue Sources</h6>
+                        <h6 className="m-0 font-weight-bold text-primary">Payouts Overview</h6>
                         <div className="dropdown no-arrow">
                           <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
@@ -517,152 +563,18 @@ class Dashboard extends React.Component {
                       </div>
                       {/* Card Body */}
                       <div className="card-body">
-                        <div className="chart-pie pt-4 pb-2">
-                          <canvas id="myPieChart" />
-                        </div>
-                        <div className="mt-4 text-center small">
-                          <span className="mr-2">
-                            <i className="fas fa-circle text-primary" /> Direct
-                          </span>
-                          <span className="mr-2">
-                            <i className="fas fa-circle text-success" /> Social
-                          </span>
-                          <span className="mr-2">
-                            <i className="fas fa-circle text-info" /> Referral
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Content Row */}
-                <div className="row">
-                  {/* Content Column */}
-                  <div className="col-lg-6 mb-4">
-                    {/* Project Card Example */}
-                    <div className="card shadow mb-4">
-                      <div className="card-header py-3">
-                        <h6 className="m-0 font-weight-bold text-primary">Projects</h6>
-                      </div>
-                      <div className="card-body">
-                        <h4 className="small font-weight-bold">Server Migration <span className="float-right">20%</span></h4>
-                        <div className="progress mb-4">
-                          <div className="progress-bar bg-danger" role="progressbar" style={{width: '20%'}} aria-valuenow={20} aria-valuemin={0} aria-valuemax={100} />
-                        </div>
-                        <h4 className="small font-weight-bold">Sales Tracking <span className="float-right">40%</span></h4>
-                        <div className="progress mb-4">
-                          <div className="progress-bar bg-warning" role="progressbar" style={{width: '40%'}} aria-valuenow={40} aria-valuemin={0} aria-valuemax={100} />
-                        </div>
-                        <h4 className="small font-weight-bold">Customer Database <span className="float-right">60%</span></h4>
-                        <div className="progress mb-4">
-                          <div className="progress-bar" role="progressbar" style={{width: '60%'}} aria-valuenow={60} aria-valuemin={0} aria-valuemax={100} />
-                        </div>
-                        <h4 className="small font-weight-bold">Payout Details <span className="float-right">80%</span></h4>
-                        <div className="progress mb-4">
-                          <div className="progress-bar bg-info" role="progressbar" style={{width: '80%'}} aria-valuenow={80} aria-valuemin={0} aria-valuemax={100} />
-                        </div>
-                        <h4 className="small font-weight-bold">Account Setup <span className="float-right">Complete!</span></h4>
-                        <div className="progress">
-                          <div className="progress-bar bg-success" role="progressbar" style={{width: '100%'}} aria-valuenow={100} aria-valuemin={0} aria-valuemax={100} />
-                        </div>
-                      </div>
-                    </div>
-                    {/* Color System */}
-                    <div className="row">
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-primary text-white shadow">
-                          <div className="card-body">
-                            Primary
-                            <div className="text-white-50 small">#4e73df</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-success text-white shadow">
-                          <div className="card-body">
-                            Success
-                            <div className="text-white-50 small">#1cc88a</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-info text-white shadow">
-                          <div className="card-body">
-                            Info
-                            <div className="text-white-50 small">#36b9cc</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-warning text-white shadow">
-                          <div className="card-body">
-                            Warning
-                            <div className="text-white-50 small">#f6c23e</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-danger text-white shadow">
-                          <div className="card-body">
-                            Danger
-                            <div className="text-white-50 small">#e74a3b</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-secondary text-white shadow">
-                          <div className="card-body">
-                            Secondary
-                            <div className="text-white-50 small">#858796</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-light text-black shadow">
-                          <div className="card-body">
-                            Light
-                            <div className="text-black-50 small">#f8f9fc</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 mb-4">
-                        <div className="card bg-dark text-white shadow">
-                          <div className="card-body">
-                            Dark
-                            <div className="text-white-50 small">#5a5c69</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 mb-4">
-                    {/* Illustrations */}
-                    <div className="card shadow mb-4">
-                      <div className="card-header py-3">
-                        <h6 className="m-0 font-weight-bold text-primary">Illustrations</h6>
-                      </div>
-                      <div className="card-body">
-                        <div className="text-center">
-                          <img className="img-fluid px-3 px-sm-4 mt-3 mb-4" style={{width: '25rem'}} src="img/undraw_posting_photo.svg" alt="..." />
-                        </div>
-                        <p>Add some quality, svg illustrations to your project courtesy of <a target="_blank" rel="nofollow" href="https://undraw.co/">unDraw</a>, a
-                          constantly updated collection of beautiful svg images that you can use
-                          completely free and without attribution!</p>
-                        <a target="_blank" rel="nofollow" href="https://undraw.co/">Browse Illustrations on
-                          unDraw →</a>
-                      </div>
-                    </div>
-                    {/* Approach */}
-                    <div className="card shadow mb-4">
-                      <div className="card-header py-3">
-                        <h6 className="m-0 font-weight-bold text-primary">Development Approach</h6>
-                      </div>
-                      <div className="card-body">
-                        <p>SB Admin 2 makes extensive use of Bootstrap 4 utility classes in order to reduce
-                          CSS bloat and poor page performance. Custom CSS classes are used to create
-                          custom components and custom utility classes.</p>
-                        <p className="mb-0">Before working with this theme, you should become familiar with the
-                          Bootstrap framework, especially the utility classes.</p>
+                      <Table borderless responsive="sm">
+                            <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Arrival Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                { this.renderPayouts() }
+                            </tbody>
+                        </Table>
                       </div>
                     </div>
                   </div>
@@ -688,24 +600,6 @@ class Dashboard extends React.Component {
         <a className="scroll-to-top rounded" href="#page-top">
           <i className="fas fa-angle-up" />
         </a>
-        {/* Logout Modal*/}
-        <div className="modal fade" id="logoutModal" tabIndex={-1} role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                <button className="close" type="button" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-              </div>
-              <div className="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                <a className="btn btn-primary" href="login.html">Logout</a>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
         );
     }

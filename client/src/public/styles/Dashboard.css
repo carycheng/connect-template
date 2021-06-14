@@ -10972,7 +10972,7 @@
   .pending-section-font-size {
       float: right;
       padding-top: 2px;
-      padding-right: 27px;
+      padding-right: 40px;
       font-size: 14px;
   }
 
@@ -10987,7 +10987,7 @@
   .verified-section-font-size {
     float: right;
     padding-top: 2px;
-    padding-right: 85px;
+    padding-right: 95px;
     font-size: 14px;
   }
 
@@ -11320,4 +11320,12 @@
 
 .risk-score-padding {
     padding-left: 5%!important;
+}
+
+.payout-button-style {
+    margin-left: 68%;
+}
+
+.dashboard-style {
+    padding-bottom: 30%;
 }
