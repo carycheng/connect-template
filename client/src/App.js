@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import SelectPlan from './pages/SelectPlan';
 import Dashboard from './pages/Dashboard';
 import Checkout from './pages/Checkout';
+import Product from './pages/Product';
 import NotFoundPage from "./pages/404";
 
 const keys = require('./config/keys');
@@ -21,6 +22,7 @@ class App extends React.Component {
             <Route exact path="/select-plan" component={SelectPlan} />
             <Route exact path="/dashboard" component={Dashboard} />
             <Route exact path="/checkout" component={InjectedCheckoutForm} />
+            <Route exact path="/product" component={Product} />
             <Route component={NotFoundPage} />
             <Redirect to="/404" />
           </Switch>

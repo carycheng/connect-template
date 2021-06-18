@@ -1,33 +1,24 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Spinner, Table } from 'react-bootstrap';
+import { Spinner, Table, InputGroup, FormControl } from 'react-bootstrap';
 import { Bell, Mailbox, Search, House, ExclamationOctagon, PersonCheck } from 'react-bootstrap-icons';
 import axios from 'axios';
 
 import '../public/styles/Dashboard.css';
 import dogIcon from '../public/images/dog.png';
 
-class Dashboard extends React.Component {
+class Product extends React.Component {
 
     constructor(props){
         super(props);
         this.state = {
-            accountBalance: null,
-            availableBalance: null,
-            pendingBalance: null,
-            accountId: null,
-            accountLinkUrl: null,
-            payouts: null,
-            accountStatus: "pending",
-            loginLinkUrl: null,
-            reportingStatePending: false,
-            payoutStatePending: false,
-            charges: null,
             parsedUser: null,
+            imgUrl: '',
+            itemName: '',
+            itemAmount: '',
+            itemDescription: '',
         };
-        this.generateReportHandler = this.generateReportHandler.bind(this);
-        this.createPayoutHandler = this.createPayoutHandler.bind(this);
     }
 
     componentDidMount() {
@@ -38,91 +29,32 @@ class Dashboard extends React.Component {
         (async () => {
             this.setState({parsedUser: parsedUser})
             console.log('Parsed User: ', this.state.parsedUser);
-
-            const payouts = await axios.post('/api/v1/get-payouts', parsedUser);
-            const accountInfo = await axios.post('/api/v1/get-account-info', parsedUser);
-            const accountBalance = await axios.post('/api/v1/get-account-balance', parsedUser);
-            this.setState({accountId: accountInfo.data.body.id})
-            this.setState({payouts: payouts.data})
-            console.log('Payouts', this.state.payouts);
-
-            this.setState({accountBalance: accountBalance})
-            this.setState({availableBalance: this.state.accountBalance.data.body.available[0].amount})
-            this.setState({pendingBalance: this.state.accountBalance.data.body.pending[0].amount})
-
-            if (accountInfo.data.body.charges_enabled == true) {
-                this.setState({accountStatus: "verified"});
-                const loginLink = await axios.post('/api/v1/get-update-link', parsedUser);
-                this.setState({ loginLinkUrl: loginLink.data.body.url });
-            }
-
-            if (this.state.accountLinkUrl == null) {
-                const response = await axios.post('/api/v1/create-account-link', parsedUser);
-                this.setState({accountLinkUrl: response.data.body.url});
-            }
-
-            let charges = await axios.post('/api/v1/get-transfers', parsedUser);
-            this.setState({charges: charges.data.body})
         })()
     }
 
-    async generateReportHandler(event) {
+    changeImgUrl(event) {
+        console.log(this.state.imgUrl);
+        this.setState({imgUrl: event.target.value})
+    }
+
+    changeName(event) {
+        console.log(this.state.itemName);
+        this.setState({itemName: event.target.value})
+    }
+
+    changeAmount(event) {
+        console.log(this.state.itemAmount);
+        this.setState({itemAmount: event.target.value})
+    }
+
+    changeDescription(event) {
+        console.log(this.state.itemDescription);
+        this.setState({itemDescription: event.target.value})
+    }
+
+    createListingHandler(event) {
         event.preventDefault();
-
-        this.setState({reportingStatePending: true})
-        const reportObject = await axios.post('/api/v1/generate-report');
-
-        window.location.href = reportObject.data.body.url;
-        this.setState({reportingStatePending: false})
-    }
-
-    async createPayoutHandler(event) {
-        event.preventDefault();
-
-        this.setState({payoutStatePending: true})
-
-        const payoutInfo = {
-            accountId: this.state.accountId,
-            payoutAmount: this.state.availableBalance
-        }
-        const payout = await axios.post('/api/v1/create-payout', payoutInfo);
-        this.setState({payoutStatePending: false})
-        this.setState({availableBalance: 0})
-
-        // const payouts = await axios.post('/api/v1/get-payouts', this.state.parsedUser.body);
-        // this.setState({payouts: payouts.data})
-    }
-    
-    renderList() {
-        if (this.state.charges == null) {
-            return null;
-        } else {
-            return this.state.charges.map(charge => {
-                return(<tr>
-                    <td>${charge.amount/100}.00</td>
-                    <td>${charge.application_fee_amount == null ? 0 : charge.application_fee_amount/100}.00</td>
-                    <td>{charge.outcome.risk_level}</td>
-                    <td className="risk-score-padding" ><div class={charge.outcome.risk_score < 65 ? "numberCircle" : "numberCircle"}>{charge.outcome.risk_score}</div></td>
-                    <td>{charge.outcome.seller_message}</td>
-                </tr>);
-            });
-        }
-    }
-
-    renderPayouts() {
-        if (this.state.payouts == null) {
-            return null;
-        } else {
-            return this.state.payouts.body.data.map(payout => {
-                var date = new Date(payout.arrival_date * 1000)
-                console.log('Date: ', date);
-                return(<tr>
-                    <td>${payout.amount/100}.00</td>
-                    <td>{payout.status}</td>
-                    <td>{date.toDateString()}</td>
-                </tr>);
-            });
-        }
+        console.log('in listing handler');
     }
 
     render() {
@@ -156,10 +88,10 @@ class Dashboard extends React.Component {
               Dashboard
             </div>
             {/* Nav Item - Pages Collapse Menu */}
-            <li className="nav-item active">
+            <li className="nav-item">
               <a className="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
                 <i className="fas fa-fw fa-cog" />
-                <span>Summary</span>
+                <Link to="/dashboard" className="link-styling"><span>Summary</span></Link>
               </a>
             </li>
             {/* Nav Item - Utilities Collapse Menu */}
@@ -185,10 +117,10 @@ class Dashboard extends React.Component {
               Additional
             </div>
             {/* Nav Item - Pages Collapse Menu */}
-            <li className="nav-item">
+            <li className="nav-item active">
               <a className="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
                 <i className="fas fa-fw fa-folder" />
-                <Link to="/product" className="link-styling"><span>Products</span></Link>
+                <span>Products</span>
               </a>
               <div id="collapsePages" className="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                 <div className="bg-white py-2 collapse-inner rounded">
@@ -403,107 +335,7 @@ class Dashboard extends React.Component {
               <div className="container-fluid dashboard-style">
                 {/* Page Heading */}
                 <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                  <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
-                  {this.state.payoutStatePending == true ? (  
-                    <a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn payout-button-style"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
-                    this.state.accountBalance == 0 ? (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>) : (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>)}
-                  {this.state.reportingStatePending == true ? (  
-                    <a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
-                    (<a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50" />Generate Report</a>)}
-                </div>
-                {/* Content Row */}
-                <div className="row">
-                  {/* Earnings (Monthly) Card Example */}
-                  <div className="col-xl-3 col-md-6 mb-4">
-                    <div className="card border-left-primary shadow h-100 py-2">
-                      <div className="card-body">
-                        <div className="row no-gutters align-items-center">
-                          <div className="col mr-2">
-                            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                              Available Balance </div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.availableBalance/100}.00</div>
-                          </div>
-                          <div className="col-auto">
-                            <i className="fas fa-calendar fa-2x text-gray-300" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Earnings (Monthly) Card Example */}
-                  <div className="col-xl-3 col-md-6 mb-4">
-                    <div className="card border-left-success shadow h-100 py-2">
-                      <div className="card-body">
-                        <div className="row no-gutters align-items-center">
-                          <div className="col mr-2">
-                            <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                              Pending Balance</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">${this.state.accountBalance == null ? 0 : this.state.pendingBalance/100}.00</div>
-                          </div>
-                          <div className="col-auto">
-                            <i className="fas fa-dollar-sign fa-2x text-gray-300" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Earnings (Monthly) Card Example */}
-                  <div className="col-xl-3 col-md-6 mb-4">
-                    <div className="card border-left-info shadow h-100 py-2">
-                      <div className="card-body">
-                        <div className="row no-gutters align-items-center">
-                          <div className="col mr-2">
-                            <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks
-                            </div>
-                            <div className="row no-gutters align-items-center">
-                              <div className="col-auto">
-                                { accountState == "pending" ? (<div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>) : 
-                                    (<div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">100%</div>)
-                                }
-                              </div>
-                              <div className="col">
-                                <div className="progress progress-sm mr-2">
-                                  <div className="progress-bar bg-info" role="progressbar" style={accountState == "pending" ? {width: '50%'} : {width: '100%'}} aria-valuenow={50} aria-valuemin={0} aria-valuemax={100} />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-auto">
-                            <i className="fas fa-clipboard-list fa-2x text-gray-300" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Pending Requests Card Example */}
-                  <div className="col-xl-3 col-md-6 mb-4">
-                    <div className={(accountState == "pending") ? "card border-left-pending shadow h-100 py-2": "card border-left-success shadow h-100 py-2"}>
-                      <div className="card-body">
-                        <div className="row no-gutters align-items-center">
-                          <div className="col mr-2">
-                            { accountState == "pending" ?
-                            (<div><div className="text-xs font-weight-bold text-pending text-uppercase mb-1">
-                              Account Status</div>
-                              <div class="pending-color">
-                                <ExclamationOctagon className="pending-icon" />
-                                <a href={this.state.accountLinkUrl} className="mb-0 font-weight-bold pending-section-font-size pending-color">Please finish onboarding</a>
-                              </div></div>) : (
-                                <div><div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Account Status</div>
-                                    <div class="verified-color">
-                                    <PersonCheck className="pending-icon" />
-                                    <a href={this.state.loginLinkUrl} target="_blank" className="mb-0 font-weight-bold verified-section-font-size verified-color">Account Verified</a>
-                                </div></div>
-                              )
-                            }
-                            </div>
-                          <div className="col-auto">
-                            <i className="fas fa-comments fa-2x text-gray-300" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <h1 className="h3 mb-0 text-gray-800">Create New Listing</h1>
                 </div>
                 {/* Content Row */}
                 <div className="row">
@@ -512,7 +344,7 @@ class Dashboard extends React.Component {
                     <div className="card shadow mb-4">
                       {/* Card Header - Dropdown */}
                       <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 className="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+                        <h6 className="m-0 font-weight-bold text-primary">Product Details</h6>
                         <div className="dropdown no-arrow">
                           <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
@@ -529,57 +361,41 @@ class Dashboard extends React.Component {
                       {/* Card Body */}
                       <div className="card-body">
                         <div className="chart-area">
-                        <Table borderless responsive="sm">
-                            <thead>
-                            <tr>
-                                <th>Payment</th>
-                                <th>Fee</th>
-                                <th>Risk Level</th>
-                                <th>Risk Score</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                { this.renderList() }
-                            </tbody>
-                        </Table>
+                            <div>
+                                <InputGroup size="sm" className="mb-3 product-md-style">
+                                    <InputGroup.Prepend>
+                                    <InputGroup.Text id="inputGroup-sizing-sm">Image URL</InputGroup.Text>
+                                    </InputGroup.Prepend>
+                                    <FormControl onChange={this.changeImgUrl.bind(this)} value={this.state.imgUrl} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
+                                </InputGroup>
+
+                                <InputGroup size="sm" className="mb-3 product-md-style">
+                                    <InputGroup.Prepend>
+                                    <InputGroup.Text id="inputGroup-sizing-sm">Item Name</InputGroup.Text>
+                                    </InputGroup.Prepend>
+                                    <FormControl onChange={this.changeName.bind(this)} value={this.state.itemName} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
+                                </InputGroup>
+
+                                <InputGroup className="mb-3 product-sm-style">
+                                    <InputGroup.Prepend>
+                                    <InputGroup.Text>$</InputGroup.Text>
+                                    </InputGroup.Prepend>
+                                    <FormControl onChange={this.changeAmount.bind(this)} value={this.state.itemAmount} aria-label="Amount (to the nearest dollar)" />
+                                    <InputGroup.Append>
+                                    <InputGroup.Text>.00</InputGroup.Text>
+                                    </InputGroup.Append>
+                                </InputGroup>
+
+                                <InputGroup className="product-height-style">
+                                    <InputGroup.Prepend>
+                                    <InputGroup.Text>Description</InputGroup.Text>
+                                    </InputGroup.Prepend>
+                                    <FormControl onChange={this.changeDescription.bind(this)} value={this.state.itemDescription} as="textarea" aria-label="With textarea" />
+                                </InputGroup>
+
+                                <a href="#" onClick={this.createListingHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style product-list-style"><i className="fas fa-download fa-sm text-white-50" />List Product</a>
+                            </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Pie Chart */}
-                  <div className="col-xl-4 col-lg-5">
-                    <div className="card shadow mb-4">
-                      {/* Card Header - Dropdown */}
-                      <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 className="m-0 font-weight-bold text-primary">Payouts Overview</h6>
-                        <div className="dropdown no-arrow">
-                          <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
-                          </a>
-                          <div className="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                            <div className="dropdown-header">Dropdown Header:</div>
-                            <a className="dropdown-item" href="#">Action</a>
-                            <a className="dropdown-item" href="#">Another action</a>
-                            <div className="dropdown-divider" />
-                            <a className="dropdown-item" href="#">Something else here</a>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Card Body */}
-                      <div className="card-body">
-                      <Table borderless responsive="sm">
-                            <thead>
-                            <tr>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Arrival Date</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                { this.renderPayouts() }
-                            </tbody>
-                        </Table>
                       </div>
                     </div>
                   </div>
@@ -614,4 +430,4 @@ const mapStateToProps = (state) => {
     return { user: state.user }
 };
 
-export default connect(mapStateToProps, null)(Dashboard);
+export default connect(mapStateToProps, null)(Product);

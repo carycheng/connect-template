@@ -11,6 +11,8 @@ router.post('/get-product-info', async (req, res) => {
         type: 'one_time'
     });
 
+    console.log('One Time Price: ', oneTimePrice);
+
     const recurringPrice = await stripe.prices.list({
         product: req.body.stripe_product_id,
         type: 'recurring'
@@ -147,6 +149,9 @@ router.post('/create-checkout-session', async (req, res) => {
             {price: oneTimePrice.data[0].id, quantity: 1},
         ],
         mode: 'payment',
+        automatic_tax: {
+            enabled: true
+        },
         payment_intent_data: {
             application_fee_amount: 500,
             transfer_data: { destination: req.body.lister_id }

@@ -11329,3 +11329,30 @@
 .dashboard-style {
     padding-bottom: 30%;
 }
+
+.link-styling {
+    color: #D3E0FF;
+    text-decoration: 'none';
+}
+
+.link-styling:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+.product-md-style {
+    width: 70%;
+}
+
+.product-sm-style {
+    width: 30%;
+}
+
+.product-height-style {
+    height: 120px;
+}
+
+.product-list-style {
+    margin-top: 1.8%;
+    margin-left: 85%;
+}
