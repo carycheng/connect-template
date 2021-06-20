@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Spinner, Table, InputGroup, FormControl } from 'react-bootstrap';
+import { Spinner, Table, InputGroup, FormControl, Card, CardDeck, Button } from 'react-bootstrap';
 import { Bell, Mailbox, Search, House, ExclamationOctagon, PersonCheck } from 'react-bootstrap-icons';
 import axios from 'axios';
 
@@ -18,6 +18,7 @@ class Product extends React.Component {
             itemName: '',
             itemAmount: '',
             itemDescription: '',
+            adminProducts: null,
         };
     }
 
@@ -27,8 +28,12 @@ class Product extends React.Component {
 
 
         (async () => {
-            this.setState({parsedUser: parsedUser})
+            await this.setState({parsedUser: parsedUser})
+            const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
+            console.log(response.data.body);
+            this.setState({adminProducts: response.data.body})
             console.log('Parsed User: ', this.state.parsedUser);
+            console.log(this.state.adminProducts);
         })()
     }
 
@@ -52,13 +57,61 @@ class Product extends React.Component {
         this.setState({itemDescription: event.target.value})
     }
 
-    createListingHandler(event) {
+    async createListingHandler(event) {
         event.preventDefault();
-        console.log('in listing handler');
+        console.log('in listing handler', this.state.parsedUser);
+        
+        const newProduct = {
+            imageUrl: this.state.imgUrl,
+            name: this.state.itemName,
+            amount: this.state.itemAmount,
+            description: this.state.itemDescription,
+            stripeAccountId: this.state.parsedUser.stripeAccountId
+        }
+
+        await axios.post('/api/v1/create-product', newProduct);
+
+        const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
+        console.log('Response: ', response);
+        this.setState({adminProducts: response.data.body})
+    }
+    
+    async deleteListingHandler(product) {
+
+        console.log(product);
+        await axios.post('/api/v1/delete-listing', product);
+        const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
+        console.log('Response: ', response);
+        this.setState({adminProducts: response.data.body})
+        console.log(this.state.adminProducts);
+    }
+
+    renderList() {
+        return this.state.adminProducts.map(product => {
+            console.log(product);
+            return (
+                <Card className="card-spacing listing-width">
+                    <Card.Img variant="top" src={product.image_url} className="card-img-body listing-height" />
+                    <Card.Body>
+                        <Card.Title>{product.name}</Card.Title>
+                        <Card.Text>
+                            {product.description}
+                            <div className="listing-time-style">
+                                <small className="text-muted">{Math.floor(Math.random() * 10) + 1} Favorites</small>
+                            </div>
+                        </Card.Text>
+                    </Card.Body>
+                    <Card.Footer>
+                        <div class="checkout-button-style button-center">
+                            <Button onClick={this.deleteListingHandler.bind(this, product)} variant="danger">Remove Listing</Button>
+                        </div>
+                    </Card.Footer>
+                </Card>
+            );
+        });
     }
 
     render() {
-        const accountState = this.state.accountStatus;
         return (
         <div>
         {/* Page Wrapper */}
@@ -335,7 +388,7 @@ class Product extends React.Component {
               <div className="container-fluid dashboard-style">
                 {/* Page Heading */}
                 <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                  <h1 className="h3 mb-0 text-gray-800">Create New Listing</h1>
+                  <h1 className="h3 mb-0 text-gray-800">Product Dashboard</h1>
                 </div>
                 {/* Content Row */}
                 <div className="row">
@@ -344,7 +397,7 @@ class Product extends React.Component {
                     <div className="card shadow mb-4">
                       {/* Card Header - Dropdown */}
                       <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 className="m-0 font-weight-bold text-primary">Product Details</h6>
+                        <h6 className="m-0 font-weight-bold text-primary">Create New Listing</h6>
                         <div className="dropdown no-arrow">
                           <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
@@ -396,6 +449,35 @@ class Product extends React.Component {
                                 <a href="#" onClick={this.createListingHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style product-list-style"><i className="fas fa-download fa-sm text-white-50" />List Product</a>
                             </div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  {/* Area Chart */}
+                  <div className="col-xl-8 col-lg-7">
+                    <div className="card shadow mb-4">
+                      {/* Card Header - Dropdown */}
+                      <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 className="m-0 font-weight-bold text-primary">Active Listings</h6>
+                        <div className="dropdown no-arrow">
+                          <a className="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
+                          </a>
+                          <div className="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div className="dropdown-header">Dropdown Header:</div>
+                            <a className="dropdown-item" href="#">Action</a>
+                            <a className="dropdown-item" href="#">Another action</a>
+                            <div className="dropdown-divider" />
+                            <a className="dropdown-item" href="#">Something else here</a>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Card Body */}
+                      <div className="card-body">
+                            <CardDeck>
+                                {this.state.adminProducts ? this.renderList() : 'No Products' }
+                            </CardDeck>
                       </div>
                     </div>
                   </div>

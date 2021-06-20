@@ -11356,3 +11356,22 @@
     margin-top: 1.8%;
     margin-left: 85%;
 }
+
+.listing-width {
+    max-width: 30%;
+}
+
+.listing-height {
+    height: 50%;
+}
+
+.listing-time-style {
+    position: absolute;
+	bottom: 0;
+	margin-left: 60%;
+	margin-bottom: 28%;
+}
+
+.button-center {
+    margin-right: 18%;
+}

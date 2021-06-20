@@ -55,7 +55,6 @@ class Landing extends React.Component {
     }
 
     renderList() {
-        console.log('PRODUCTS', this.state.products);
         return this.state.products.map(product => {
             console.log(product);
             return (

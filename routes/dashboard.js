@@ -110,7 +110,7 @@ router.post('/create-payout', async (req, res) => {
 
 router.post('/get-payouts', async (req, res) => {
 
-    console.log(req.body)
+    console.log('Payout: ', req.body)
     
     const payouts = await stripe.payouts.list({
         limit: 3
