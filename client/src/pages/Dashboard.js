@@ -27,19 +27,17 @@ class Dashboard extends React.Component {
             parsedUser: null,
         };
         this.generateReportHandler = this.generateReportHandler.bind(this);
-        this.createPayoutHandler = this.createPayoutHandler.bind(this);
     }
 
     componentDidMount() {
         const savedUser = localStorage.getItem('user')
         const parsedUser = JSON.parse(savedUser);
 
-
         (async () => {
-            this.setState({parsedUser: parsedUser})
+            await this.setState({parsedUser: parsedUser})
             console.log('Parsed User: ', this.state.parsedUser);
 
-            const payouts = await axios.post('/api/v1/get-payouts', parsedUser);
+            const payouts = await axios.post('/api/v1/get-payouts', this.state.parsedUser);
             const accountInfo = await axios.post('/api/v1/get-account-info', parsedUser);
             const accountBalance = await axios.post('/api/v1/get-account-balance', parsedUser);
             this.setState({accountId: accountInfo.data.body.id})
@@ -76,9 +74,7 @@ class Dashboard extends React.Component {
         this.setState({reportingStatePending: false})
     }
 
-    async createPayoutHandler(event) {
-        event.preventDefault();
-
+    async createPayoutHandler() {
         this.setState({payoutStatePending: true})
 
         const payoutInfo = {
@@ -91,7 +87,7 @@ class Dashboard extends React.Component {
 
         console.log(this.state.parsedUser);
 
-        const payouts = await axios.post('/api/v1/get-payouts', this.state.parsedUser.body);
+        const payouts = await axios.post('/api/v1/get-payouts', this.state.parsedUser);
         console.log('Payouts: ', payouts);
         this.setState({payouts: payouts.data})
     }
@@ -408,8 +404,8 @@ class Dashboard extends React.Component {
                 <div className="d-sm-flex align-items-center justify-content-between mb-4">
                   <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
                   {this.state.payoutStatePending == true ? (  
-                    <a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn payout-button-style"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
-                    this.state.availableBalance == 0 ? (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>) : (<a href="#" onClick={this.createPayoutHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>)}
+                    <a href="#" onClick={this.createPayoutHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn payout-button-style"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
+                    this.state.availableBalance == 0 ? (<a href="#" onClick={this.createPayoutHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style disabled"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>) : (<a href="#" onClick={this.createPayoutHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style"><i className="fas fa-download fa-sm text-white-50" />Payout Account</a>)}
                   {this.state.reportingStatePending == true ? (  
                     <a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled pending-report-btn"><Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" /><i className="fas fa-download fa-sm text-white-50 pending-loader-spacing" />Loading...</a>) :
                     (<a href="#" onClick={this.generateReportHandler} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i className="fas fa-download fa-sm text-white-50" />Generate Report</a>)}

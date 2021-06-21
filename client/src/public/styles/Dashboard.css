@@ -11375,3 +11375,17 @@
 .button-center {
     margin-right: 18%;
 }
+
+.spinner-style {
+    margin-left: 48%;
+    margin-top: 18%
+}
+
+.listing-area-style {
+    height: 400px;
+}
+
+.no-listing-style {
+    margin-left: 41%;
+    margin-top: 18%
+}

@@ -19,6 +19,8 @@ class Product extends React.Component {
             itemAmount: '',
             itemDescription: '',
             adminProducts: null,
+            loading: false,
+            deleteLoading: false,
         };
     }
 
@@ -26,12 +28,12 @@ class Product extends React.Component {
         const savedUser = localStorage.getItem('user')
         const parsedUser = JSON.parse(savedUser);
 
-
         (async () => {
             await this.setState({parsedUser: parsedUser})
             const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
             console.log(response.data.body);
             this.setState({adminProducts: response.data.body})
+            console.log(this.state.adminProducts);
             console.log('Parsed User: ', this.state.parsedUser);
             console.log(this.state.adminProducts);
         })()
@@ -59,7 +61,8 @@ class Product extends React.Component {
 
     async createListingHandler(event) {
         event.preventDefault();
-        console.log('in listing handler', this.state.parsedUser);
+        
+        this.setState({loading: true});
         
         const newProduct = {
             imageUrl: this.state.imgUrl,
@@ -74,16 +77,21 @@ class Product extends React.Component {
         const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
         console.log('Response: ', response);
         this.setState({adminProducts: response.data.body})
+        this.setState({imgUrl: ''});
+        this.setState({itemName: ''});
+        this.setState({itemAmount: ''});
+        this.setState({itemDescription: ''});
+        this.setState({loading: false});
     }
     
     async deleteListingHandler(product) {
 
-        console.log(product);
+        this.setState({deleteLoading: true});
         await axios.post('/api/v1/delete-listing', product);
         const response = await axios.post('/api/v1/get-admin-products', this.state.parsedUser);
-        console.log('Response: ', response);
+        
         this.setState({adminProducts: response.data.body})
-        console.log(this.state.adminProducts);
+        this.setState({deleteLoading: false});
     }
 
     renderList() {
@@ -415,38 +423,41 @@ class Product extends React.Component {
                       <div className="card-body">
                         <div className="chart-area">
                             <div>
-                                <InputGroup size="sm" className="mb-3 product-md-style">
-                                    <InputGroup.Prepend>
-                                    <InputGroup.Text id="inputGroup-sizing-sm">Image URL</InputGroup.Text>
-                                    </InputGroup.Prepend>
-                                    <FormControl onChange={this.changeImgUrl.bind(this)} value={this.state.imgUrl} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
-                                </InputGroup>
+                                {this.state.loading ? (<Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" variant="success" className="spinner-style"></Spinner>) :
+                                (<div>
+                                    <InputGroup size="sm" className="mb-3 product-md-style">
+                                        <InputGroup.Prepend>
+                                        <InputGroup.Text id="inputGroup-sizing-sm">Image URL</InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <FormControl onChange={this.changeImgUrl.bind(this)} value={this.state.imgUrl} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
+                                    </InputGroup>
 
-                                <InputGroup size="sm" className="mb-3 product-md-style">
-                                    <InputGroup.Prepend>
-                                    <InputGroup.Text id="inputGroup-sizing-sm">Item Name</InputGroup.Text>
-                                    </InputGroup.Prepend>
-                                    <FormControl onChange={this.changeName.bind(this)} value={this.state.itemName} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
-                                </InputGroup>
+                                    <InputGroup size="sm" className="mb-3 product-md-style">
+                                        <InputGroup.Prepend>
+                                        <InputGroup.Text id="inputGroup-sizing-sm">Item Name</InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <FormControl onChange={this.changeName.bind(this)} value={this.state.itemName} aria-label="Small" aria-describedby="inputGroup-sizing-sm" />
+                                    </InputGroup>
 
-                                <InputGroup className="mb-3 product-sm-style">
-                                    <InputGroup.Prepend>
-                                    <InputGroup.Text>$</InputGroup.Text>
-                                    </InputGroup.Prepend>
-                                    <FormControl onChange={this.changeAmount.bind(this)} value={this.state.itemAmount} aria-label="Amount (to the nearest dollar)" />
-                                    <InputGroup.Append>
-                                    <InputGroup.Text>.00</InputGroup.Text>
-                                    </InputGroup.Append>
-                                </InputGroup>
+                                    <InputGroup className="mb-3 product-sm-style">
+                                        <InputGroup.Prepend>
+                                        <InputGroup.Text>$</InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <FormControl onChange={this.changeAmount.bind(this)} value={this.state.itemAmount} aria-label="Amount (to the nearest dollar)" />
+                                        <InputGroup.Append>
+                                        <InputGroup.Text>.00</InputGroup.Text>
+                                        </InputGroup.Append>
+                                    </InputGroup>
 
-                                <InputGroup className="product-height-style">
-                                    <InputGroup.Prepend>
-                                    <InputGroup.Text>Description</InputGroup.Text>
-                                    </InputGroup.Prepend>
-                                    <FormControl onChange={this.changeDescription.bind(this)} value={this.state.itemDescription} as="textarea" aria-label="With textarea" />
-                                </InputGroup>
+                                    <InputGroup className="product-height-style">
+                                        <InputGroup.Prepend>
+                                        <InputGroup.Text>Description</InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <FormControl onChange={this.changeDescription.bind(this)} value={this.state.itemDescription} as="textarea" aria-label="With textarea" />
+                                    </InputGroup>
 
-                                <a href="#" onClick={this.createListingHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style product-list-style"><i className="fas fa-download fa-sm text-white-50" />List Product</a>
+                                    <a href="#" onClick={this.createListingHandler.bind(this)} className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm payout-button-style product-list-style"><i className="fas fa-download fa-sm text-white-50" />List Product</a>
+                                </div>)}
                             </div>
                         </div>
                       </div>
@@ -474,9 +485,9 @@ class Product extends React.Component {
                         </div>
                       </div>
                       {/* Card Body */}
-                      <div className="card-body">
+                      <div className="card-body listing-area-style">
                             <CardDeck>
-                                {this.state.adminProducts ? this.renderList() : 'No Products' }
+                                {this.state.adminProducts && this.state.adminProducts.length !== 0 ? (this.state.deleteLoading == false ? this.renderList() :  <Spinner animation="grow" variant="warning" className="spinner-style"/>) : <div className="no-listing-style">No Active Listings</div> }
                             </CardDeck>
                       </div>
                     </div>

@@ -117,6 +117,8 @@ router.post('/get-payouts', async (req, res) => {
     }, {
         stripeAccount: req.body.stripeAccountId,
     });
+
+    console.log('Payouts: ', payouts);
     
     res.status(200).send({body: payouts});
 });

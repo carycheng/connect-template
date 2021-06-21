@@ -156,6 +156,7 @@ router.post('/create-checkout-session', async (req, res) => {
             application_fee_amount: 500,
             transfer_data: { destination: req.body.lister_id }
         },
+        allow_promotion_codes: true,
         success_url: 'http://localhost:3000',
         cancel_url: 'http://localhost:3000',
     });
