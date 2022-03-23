@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 // Create a new express application named 'app'
 const app = express();
 
-mongoose.connect('mongodb+srv://caryadmin:caryadmin@stripereact.mxae3.mongodb.net/users?retryWrites=true&w=majority', () => console.log('Database Connected'));
+mongoose.connect('REPLACE_WITH_MONGO_KEY', () => console.log('Database Connected'));
 
 // Set our backend port to be either an environment variable or port 5000
 const port = process.env.PORT || 5000;
